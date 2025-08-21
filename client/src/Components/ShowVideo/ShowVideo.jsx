@@ -1,41 +1,34 @@
-import { Link } from "react-router-dom";
-import moment from "moment";
+import React from "react";
 
 function ShowVideo({ vid }) {
-  let normalizedFilePath = vid.filePath.replace(/\\/g, "/");
-
-  // ✅ Ensure path includes /uploads
-  if (!normalizedFilePath.startsWith("/uploads")) {
-    normalizedFilePath = "/uploads/" + normalizedFilePath;
+  if (!vid) {
+    return <p>No video selected</p>;
   }
 
-  // ✅ Use local backend URL (where Express is running)
-  const videoURL = `http://localhost:5000${normalizedFilePath}`;
+  // Extract just the filename if full path is passed
+  let fileName = "";
+
+  if (typeof vid === "string") {
+    fileName = vid.split("\\").pop().split("/").pop(); // handles Windows/Unix paths
+  } else if (vid.filename) {
+    fileName = vid.filename;
+  } else if (vid.filePath) {
+    fileName = vid.filePath.split("\\").pop().split("/").pop();
+  } else {
+    console.error("Unexpected video format:", vid);
+    return <p>Invalid video data</p>;
+  }
+
+  // Construct backend video URL
+  const videoUrl = `http://localhost:5000/uploads/${fileName}`;
 
   return (
-    <>
-      <Link to={`/videopage/${vid?._id}`}>
-        <video 
-          src={videoURL}
-          className="video_ShowVideo"
-          controls
-        />
-      </Link>
-      <div className='video_description'>
-        <div className='Chanel_logo_App'>
-          <div className='fstChar_logo_App'>
-            <>{vid?.Uploder?.charAt(0).toUpperCase()}</>
-          </div>
-        </div>
-        <div className='video_details'>
-          <p className='title_vid_ShowVideo'>{vid?.videoTitle}</p>
-          <pre className='vid_views_UploadTime'>{vid?.Uploder}</pre>
-          <pre className='vid_views_UploadTime'>
-            {vid?.Views} views <div className="dot"></div> {moment(vid?.createdAt).fromNow()}
-          </pre>
-        </div>
-      </div>
-    </>
+    <div>
+      <video width="600" controls>
+        <source src={videoUrl} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
   );
 }
 
