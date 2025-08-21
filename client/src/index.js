@@ -1,3 +1,7 @@
+// Polyfills for CRA v5 + simple-peer/readable-stream
+import process from 'process';
+import { Buffer } from 'buffer';
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
@@ -10,7 +14,10 @@ import {createStore} from 'redux'
 import thunk from "redux-thunk"
 import Reducers from "./Reducers"
 import { PointsProvider } from "./context/pointsContext";
-
+window.process = process;
+window.Buffer = Buffer;
+// Optional but often helpful:
+window.global = window;
 
 const store=createStore(Reducers,compose(applyMiddleware(thunk)))
 

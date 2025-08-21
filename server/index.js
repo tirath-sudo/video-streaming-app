@@ -8,6 +8,8 @@ import videoRoutes from './routes/video.js';
 import commentsRoutes from './routes/comments.js';
 import path from 'path';
 import createSocketServer from './socket.js';
+import videoCallRoutes from './routes/videoCall.js';
+
 
 dotenv.config();
 
@@ -27,6 +29,7 @@ app.use(bodyParser.json());
 app.use('/user', userRoutes);
 app.use('/video', videoRoutes);
 app.use('/comment', commentsRoutes);
+app.use('/videoCall', videoCallRoutes);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

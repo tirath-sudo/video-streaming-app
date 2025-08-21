@@ -18,7 +18,7 @@ import {
   stopScreenShare as stopScreenShareAPI, 
  // initiateCall as initiateCallAPI, 
  // answerCall as answerCallAPI, 
-  endCall as endCallAPI 
+  
 } from "../../api/index"; 
 
 const socket = io.connect("https://internproject-yzv8.onrender.com/");
@@ -43,6 +43,18 @@ function Videocall() {
   const connectionRef = useRef();
   const combinedStream = useRef(new MediaStream());
   const recordedStream = useRef(new MediaStream());
+  useEffect(() => {
+  return () => {
+    try {
+      if (connectionRef.current) {
+        connectionRef.current.destroy();
+      }
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
+    } catch {}
+  };
+  }, []);
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
@@ -130,10 +142,17 @@ function Videocall() {
   };
 
   const leaveCall = () => {
+  try {
     setCallEnded(true);
-    connectionRef.current.destroy();
-    endCallAPI({ userId: me }); // Notify the server about ending the call
-  };
+    if (connectionRef.current) {
+      connectionRef.current.destroy();
+    }
+    // Notify the other party via socket instead of HTTP
+    socket.emit("endCall", { to: caller, callId: me });
+  } catch (e) {
+    console.error("Error while leaving call:", e);
+  }
+};
 
   const handleCopy = () => {
     console.log("ID copied to clipboard: ", me);
