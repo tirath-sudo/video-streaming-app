@@ -4,13 +4,13 @@ import mongoose from "mongoose";
 export const HistoryController = async (req, res) => {
   const HistoryData = req.body;
 
-  // console.log(HistoryData);
+
   const addToHistory = new History(HistoryData);
 
   try {
     await addToHistory.save();
     res.status(200).json("added to History");
-    // console.log("DOne");
+  
   } catch (error) {
     res.status(400).json(error);
   }
@@ -27,7 +27,7 @@ export const getAllHistoryController = async (req, res) => {
 
 export const deleteHistoryController = async (req, res) => {
   const { userId:userId } = req.params;
-  // console.log(userId)
+  
   try {
     await History.deleteMany({
         Viewer:userId

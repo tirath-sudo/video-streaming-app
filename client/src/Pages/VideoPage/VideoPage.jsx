@@ -65,7 +65,7 @@ function VideoPage() {
     const handleKeyDown = (event) => {
       const video = videoRef.current;
 
-      // If no player yet, ignore
+      
       if (!video) return;
 
       if (event.shiftKey) {
@@ -151,10 +151,10 @@ function VideoPage() {
     );
   }
 
-  // Build a correct local URL to the backend uploads
+  // Built a correct local URL to the backend uploads
   let fileName = "";
   if (vv.filePath) {
-    const parts = vv.filePath.split(/[/\\]/); // handle both Windows and POSIX paths
+    const parts = vv.filePath.split(/[/\\]/); 
     fileName = parts[parts.length - 1];
   }
   const videoUrl = fileName

@@ -2,7 +2,7 @@ import React from 'react'
 import ShwoVideoList from '../ShowVideoList/ShwoVideoList'
 
 function WHLVideoList({ page, CurrentUser,videoList }) {
-  // console.log(videoList)
+  
   return (
     <>
      { CurrentUser ?(<>

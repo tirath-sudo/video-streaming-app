@@ -1,7 +1,7 @@
 import comment from "../models/comments.js";
 import mongoose from "mongoose";
 
-//   ;
+
 
 export const postComment = async (req, res) => {
   const commentData = req.body;
@@ -9,7 +9,7 @@ export const postComment = async (req, res) => {
   try {
     await postcomment.save();
     res.status(200).json("posted the comment");
-    //   console.log("DOne");
+    
   } catch (error) {
     res.status(400).json(error);
   }

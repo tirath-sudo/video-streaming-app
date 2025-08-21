@@ -1,4 +1,4 @@
-// Polyfills for CRA v5 + simple-peer/readable-stream
+
 import process from 'process';
 import { Buffer } from 'buffer';
 
@@ -16,7 +16,6 @@ import Reducers from "./Reducers"
 import { PointsProvider } from "./context/pointsContext";
 window.process = process;
 window.Buffer = Buffer;
-// Optional but often helpful:
 window.global = window;
 
 const store=createStore(Reducers,compose(applyMiddleware(thunk)))
@@ -33,7 +32,4 @@ root.render(
   </Provider>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

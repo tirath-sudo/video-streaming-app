@@ -8,7 +8,6 @@ function ShowVideo({ vid }) {
     return <p>No video selected</p>;
   }
 
-  // --- Safe filename extraction (handles string/object + Win/Unix paths)
   const getFileName = (v) => {
     if (!v) return "";
     if (typeof v === "string") {
@@ -32,7 +31,6 @@ function ShowVideo({ vid }) {
     return <p>Invalid video data</p>;
   }
 
-  // --- Backend base (env override optional), encode filename for safety
   const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
   const videoURL = `${API_BASE}/uploads/${encodeURIComponent(fileName)}`;
 

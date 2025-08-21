@@ -63,7 +63,7 @@ export const startRecording = (req, res) => {
   res.status(200).json({ message: 'Recording started' });
 };
 
-// Controller to stop recording
+
 export const stopRecording = (req, res) => {
   const { userId } = req.body;
 

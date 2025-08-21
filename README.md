@@ -18,4 +18,7 @@ A YouTube-style video platform built with **MongoDB, Express, React, Node.js**, 
 - **DB:** MongoDB
 - **RTC:** PeerJS (WebRTC)
 
-## 🗂 Monorepo
+## Setup
+- npm start (in server)
+- npm start (in client)
+

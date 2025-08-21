@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 export const viewController = async (req, res) => {
   const { id: _id } = req.params;
-  // console.log(_id)
+  
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(404).send("Video Unavailable..");
   }
