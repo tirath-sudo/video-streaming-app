@@ -1,34 +1,64 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import moment from "moment";
+import "./ShowVideo.css";
 
 function ShowVideo({ vid }) {
   if (!vid) {
     return <p>No video selected</p>;
   }
 
-  // Extract just the filename if full path is passed
-  let fileName = "";
+  // --- Safe filename extraction (handles string/object + Win/Unix paths)
+  const getFileName = (v) => {
+    if (!v) return "";
+    if (typeof v === "string") {
+      const parts = v.split(/[/\\]/);
+      return parts[parts.length - 1] || "";
+    }
+    if (v.filename) {
+      const parts = String(v.filename).split(/[/\\]/);
+      return parts[parts.length - 1] || "";
+    }
+    if (v.filePath) {
+      const parts = String(v.filePath).split(/[/\\]/);
+      return parts[parts.length - 1] || "";
+    }
+    return "";
+  };
 
-  if (typeof vid === "string") {
-    fileName = vid.split("\\").pop().split("/").pop(); // handles Windows/Unix paths
-  } else if (vid.filename) {
-    fileName = vid.filename;
-  } else if (vid.filePath) {
-    fileName = vid.filePath.split("\\").pop().split("/").pop();
-  } else {
-    console.error("Unexpected video format:", vid);
+  const fileName = getFileName(vid);
+  if (!fileName) {
+    console.error("ShowVideo: could not derive filename from vid:", vid);
     return <p>Invalid video data</p>;
   }
 
-  // Construct backend video URL
-  const videoUrl = `http://localhost:5000/uploads/${fileName}`;
+  // --- Backend base (env override optional), encode filename for safety
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const videoURL = `${API_BASE}/uploads/${encodeURIComponent(fileName)}`;
 
   return (
-    <div>
-      <video width="600" controls>
-        <source src={videoUrl} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-    </div>
+    <>
+      <Link to={`/videopage/${vid?._id}`}>
+        <video src={videoURL} className="video_ShowVideo" controls preload="metadata" />
+      </Link>
+
+      <div className="video_description">
+        <div className="Chanel_logo_App">
+          <div className="fstChar_logo_App">
+            {vid?.Uploder?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+        </div>
+
+        <div className="video_details">
+          <p className="title_vid_ShowVideo">{vid?.videoTitle}</p>
+          <pre className="vid_views_UploadTime">{vid?.Uploder}</pre>
+          <pre className="vid_views_UploadTime">
+            {vid?.Views} views <div className="dot"></div>{" "}
+            {moment(vid?.createdAt).fromNow()}
+          </pre>
+        </div>
+      </div>
+    </>
   );
 }
 

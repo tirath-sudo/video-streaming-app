@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import Comments from "../../Components/Comments/Comments";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
@@ -8,31 +8,39 @@ import "./VideoPage.css";
 import { addToHistory } from "../../actions/History";
 import { viewVideo } from "../../actions/video";
 import { updatePoints } from "../../actions/Points";
-import { useNavigate } from "react-router-dom";
 
 function VideoPage() {
   const { vid } = useParams();
-  const vids = useSelector((state) => state.videoReducer);
-  const vv = vids?.data.filter((q) => q._id === vid)[0];
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const CurrentUser = useSelector((state) => state?.currentUserReducer);
+  const vidsState = useSelector((state) => state.videoReducer);
+
+  const data = vidsState?.data || [];
+  const vv = data.find((q) => q._id === vid) || null;
+
   const [pointsUpdated, setPointsUpdated] = useState(false);
   const videoRef = useRef(null);
   const commentSectionRef = useRef(null);
-  const navigate = useNavigate();
 
-  const currentVideoIndex = vids.data.findIndex((q) => q._id === vid);
-  const nextVideoIndex = (currentVideoIndex + 1) % vids.data.length;
-  const nextVideo = vids.data[nextVideoIndex];
+  // Next video logic (safe for empty lists)
+  const currentVideoIndex = data.findIndex((q) => q._id === vid);
+  const nextVideoIndex =
+    data.length > 0 && currentVideoIndex >= 0
+      ? (currentVideoIndex + 1) % data.length
+      : -1;
+  const nextVideo = nextVideoIndex >= 0 ? data[nextVideoIndex] : null;
 
   const handleHistory = useCallback(() => {
+    if (!CurrentUser?.result?._id) return;
     dispatch(
       addToHistory({
         videoId: vid,
-        Viewer: CurrentUser?.result._id,
+        Viewer: CurrentUser.result._id,
       })
     );
-  }, [dispatch, vid, CurrentUser?.result._id]);
+  }, [dispatch, vid, CurrentUser?.result?._id]);
 
   const handleViews = useCallback(() => {
     dispatch(
@@ -43,7 +51,7 @@ function VideoPage() {
   }, [dispatch, vid]);
 
   useEffect(() => {
-    if (CurrentUser) {
+    if (CurrentUser && vv) {
       handleHistory();
       handleViews();
       if (!pointsUpdated) {
@@ -51,26 +59,31 @@ function VideoPage() {
         setPointsUpdated(true);
       }
     }
-  }, [CurrentUser, vid, dispatch, pointsUpdated, handleHistory, handleViews]);
+  }, [CurrentUser, vv, vid, dispatch, pointsUpdated, handleHistory, handleViews]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
+      const video = videoRef.current;
+
+      // If no player yet, ignore
+      if (!video) return;
+
       if (event.shiftKey) {
         if (event.key === ">") {
-          videoRef.current.playbackRate += 0.5;
+          video.playbackRate = (video.playbackRate || 1) + 0.5;
         } else if (event.key === "<") {
-          videoRef.current.playbackRate = Math.max(0.5, videoRef.current.playbackRate - 0.5);
+          video.playbackRate = Math.max(0.5, (video.playbackRate || 1) - 0.5);
         } else if (event.key === "G") {
           window.location.href = "https://www.google.com";
           event.preventDefault();
         }
       } else {
         if (event.key === "ArrowRight") {
-          videoRef.current.currentTime += 10;
+          video.currentTime = (video.currentTime || 0) + 10;
         } else if (event.key === "ArrowLeft") {
-          videoRef.current.currentTime -= 10;
+          video.currentTime = Math.max(0, (video.currentTime || 0) - 10);
         } else if (event.key === "c") {
-          commentSectionRef.current.focus();
+          commentSectionRef.current?.focus();
         } else if (event.key === "x") {
           alert("Window cannot be closed due to current browser settings");
         } else if (event.key === "l") {
@@ -78,27 +91,36 @@ function VideoPage() {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             const appid = "b6d38f62792ecb88f2a826edd4764185";
-            fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${appid}`)
-              .then(response => {
+            fetch(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${appid}`
+            )
+              .then((response) => {
                 if (response.ok) {
                   return response.json();
                 } else {
                   throw new Error(response.statusText);
                 }
               })
-              .then(data => {
+              .then((data) => {
                 const location = data.name;
-                let temp = '';
+                let temp = "";
                 if (data.main) {
                   temp = (data.main.temp - 273.15).toFixed(2);
                 } else {
-                  temp = 'Unknown';
+                  temp = "Unknown";
                 }
-                alert(`You are currently in ${location} and the temperature is ${temp}°C`);
+                alert(
+                  `You are currently in ${location} and the temperature is ${temp}°C`
+                );
               })
-              .catch(error => {
-                if (error.message === "Invalid API key. Please see https://openweathermap.org/faq#error401 for more info.") {
-                  alert("Error: Invalid API key. Please check your API key and try again.");
+              .catch((error) => {
+                if (
+                  error.message ===
+                  "Invalid API key. Please see https://openweathermap.org/faq#error401 for more info."
+                ) {
+                  alert(
+                    "Error: Invalid API key. Please check your API key and try again."
+                  );
                 } else {
                   alert("Error: " + error.message);
                 }
@@ -116,7 +138,28 @@ function VideoPage() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [videoRef, commentSectionRef, vids, navigate, currentVideoIndex, nextVideo]);
+  }, [navigate, nextVideo]);
+
+  // If the requested video doesn't exist
+  if (!vv) {
+    return (
+      <div className="container_videoPage">
+        <div className="container2_videoPage">
+          <p>Video not found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Build a correct local URL to the backend uploads
+  let fileName = "";
+  if (vv.filePath) {
+    const parts = vv.filePath.split(/[/\\]/); // handle both Windows and POSIX paths
+    fileName = parts[parts.length - 1];
+  }
+  const videoUrl = fileName
+    ? `http://localhost:5000/uploads/${encodeURIComponent(fileName)}`
+    : "";
 
   return (
     <>
@@ -125,7 +168,7 @@ function VideoPage() {
           <div className="video_display_screen_videoPage">
             <video
               ref={videoRef}
-              src={`https://internproject-yzv8.onrender.com/${vv?.filePath}`}
+              src={videoUrl}
               className={"video_ShowVideo_videoPage"}
               controls
             />
@@ -145,15 +188,19 @@ function VideoPage() {
                 className="chanel_details_videoPage"
               >
                 <b className="chanel_logo_videoPage">
-                  <p>{vv?.Uploder.charAt(0).toUpperCase()}</p>
+                  <p>{vv?.Uploder?.charAt(0).toUpperCase()}</p>
                 </b>
                 <p className="chanel_name_videoPage">{vv?.Uploder}</p>
               </Link>
-              <div className="comments_VideoPage" tabIndex={0} ref={commentSectionRef}>
+              <div
+                className="comments_VideoPage"
+                tabIndex={0}
+                ref={commentSectionRef}
+              >
                 <h2>
                   <u>Comments</u>
                 </h2>
-                <Comments videoId={vv._id} />
+                <Comments videoId={vv?._id} />
               </div>
             </div>
           </div>
