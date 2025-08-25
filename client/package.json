@@ -37,7 +37,7 @@
   "scripts": {
     "start": "react-scripts start",
     "prebuild": "npx update-browserslist-db@latest --force",
-    "build": "npm install caniuse-lite --force && react-scripts build",
+    "build": "CI=false npm install --legacy-peer-deps && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
