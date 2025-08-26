@@ -25,11 +25,15 @@ const store=createStore(Reducers,compose(applyMiddleware(thunk)))
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
+const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
 root.render(
   <Provider store={store}>
     <React.StrictMode>
     <PointsProvider>
+      <GoogleOAuthProvider clientId={clientId}>
       <App />
+      </GoogleOAuthProvider>
     </PointsProvider>  
     </React.StrictMode>
   </Provider>
