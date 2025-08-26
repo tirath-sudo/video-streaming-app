@@ -18,6 +18,9 @@ window.process = process;
 window.Buffer = Buffer;
 window.global = window;
 
+import { Button } from '@mui/material';
+import { IconName } from '@mui/icons-material';
+
 const store=createStore(Reducers,compose(applyMiddleware(thunk)))
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
