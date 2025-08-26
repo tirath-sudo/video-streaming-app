@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { GoogleLogout } from "react-google-login";
 import { BiLogOut } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { setCurrentUser } from "../../actions/currentUser";
@@ -31,15 +29,14 @@ function Auth({ User, setAuthBtn, setEditCreateChanelBtn }) {
         <div className="User_Details">
           <div className="Chanel_logo_App">
             <p className="fstChar_logo_App">
-              {User?.result.name ? (
-                <>{User?.result.name.charAt(0).toUpperCase()} </>
-              ) : (
-                <>{User?.result.email.charAt(0).toUpperCase()} </>
-              )}
+              {User?.result.name
+                ? User?.result.name.charAt(0).toUpperCase()
+                : User?.result.email.charAt(0).toUpperCase()}
             </p>
           </div>
           <div className="email_Auth">{User?.result.email}</div>
         </div>
+
         <div className="btns_Auth">
           {User?.result.name ? (
             <>
@@ -58,19 +55,12 @@ function Auth({ User, setAuthBtn, setEditCreateChanelBtn }) {
               />
               <div className="myy">Create Channel To View Points</div>
             </>
-          
           )}
-          <div>
-            <GoogleLogout
-              clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}
-              onLogoutSuccess={onLogOutSuccess}
-              render={(renderProps) => (
-                <div onClick={renderProps.onClick} className="btn_Auth">
-                  <BiLogOut />
-                  Log Out
-                </div>
-              )}
-            />
+
+          {/* Logout Button */}
+          <div onClick={onLogOutSuccess} className="btn_Auth" style={{ cursor: "pointer" }}>
+            <BiLogOut />
+            Log Out
           </div>
         </div>
       </div>
