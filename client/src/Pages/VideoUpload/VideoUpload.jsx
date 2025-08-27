@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { uploadVideo } from "../../actions/video";
 import { buildStyles, CircularProgressbar } from "react-circular-progressbar";
 import "./VideoUpload.css";
+
+
 function VideoUpload({ setVidUploadPage }) {
   const CurrentUser = useSelector((state) => state.currentUserReducer);
   const dispatch = useDispatch();
