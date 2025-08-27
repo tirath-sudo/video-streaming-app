@@ -1,7 +1,7 @@
 "use strict";
 import multer from "multer";
 import fs from "fs";
-import path from "path";
+
 
 // absolute path for uploads
 const uploadPath = path.join(process.cwd(), "uploads");
