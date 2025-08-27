@@ -23,7 +23,7 @@ export const uploadVideo = async (req, res) => {
   }
 };
 
-export const getAllvideos = async (req, res) => {
+export const getAllVideos = async (req, res) => {
   try {
     const files = await videoFiles.find();
     res.status(200).send(files);
