@@ -1,18 +1,15 @@
 import videoFiles from "../models/videoFiles.js";
 
-// Upload a new video
-export const uploadVideo = async (req, res, next) => {
-  if (!req.file) {
-    return res
-      .status(404)
-      .json({ message: "Please upload a '.mp4' video file only." });
+export const uploadVideo = async (req, res) => {
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ message: "Upload a valid video file." });
   }
 
   try {
     const file = new videoFiles({
       videoTitle: req.body.title,
       fileName: req.file.originalname,
-      filePath: req.file.path,
+      filePath: req.file.path,           // Cloudinary URL
       fileType: req.file.mimetype,
       fileSize: req.file.size,
       videoChanel: req.body.chanel,
@@ -20,14 +17,13 @@ export const uploadVideo = async (req, res, next) => {
     });
 
     await file.save();
-    res.status(200).send("File uploaded successfully");
+    res.status(200).json({ message: "Video uploaded successfully", video: file });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Get all uploaded videos
-export const getAllVideos = async (req, res) => {
+export const getAllvideos = async (req, res) => {
   try {
     const files = await videoFiles.find();
     res.status(200).send(files);
