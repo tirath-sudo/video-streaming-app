@@ -24,7 +24,7 @@ function VideoPage() {
   const videoRef = useRef(null);
   const commentSectionRef = useRef(null);
 
-  // Next video logic (safe for empty lists)
+  // Next video logic
   const currentVideoIndex = data.findIndex((q) => q._id === vid);
   const nextVideoIndex =
     data.length > 0 && currentVideoIndex >= 0
@@ -64,8 +64,6 @@ function VideoPage() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       const video = videoRef.current;
-
-      
       if (!video) return;
 
       if (event.shiftKey) {
@@ -94,36 +92,18 @@ function VideoPage() {
             fetch(
               `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${appid}`
             )
-              .then((response) => {
-                if (response.ok) {
-                  return response.json();
-                } else {
-                  throw new Error(response.statusText);
-                }
-              })
+              .then((response) => response.json())
               .then((data) => {
                 const location = data.name;
-                let temp = "";
-                if (data.main) {
-                  temp = (data.main.temp - 273.15).toFixed(2);
-                } else {
-                  temp = "Unknown";
-                }
+                let temp = data.main
+                  ? (data.main.temp - 273.15).toFixed(2)
+                  : "Unknown";
                 alert(
                   `You are currently in ${location} and the temperature is ${temp}°C`
                 );
               })
               .catch((error) => {
-                if (
-                  error.message ===
-                  "Invalid API key. Please see https://openweathermap.org/faq#error401 for more info."
-                ) {
-                  alert(
-                    "Error: Invalid API key. Please check your API key and try again."
-                  );
-                } else {
-                  alert("Error: " + error.message);
-                }
+                alert("Error: " + error.message);
               });
           });
         } else if (event.key === "n") {
@@ -140,7 +120,6 @@ function VideoPage() {
     };
   }, [navigate, nextVideo]);
 
-  // If the requested video doesn't exist
   if (!vv) {
     return (
       <div className="container_videoPage">
@@ -151,63 +130,54 @@ function VideoPage() {
     );
   }
 
-  // Built a correct local URL to the backend uploads
-  let fileName = "";
-  if (vv.filePath) {
-    const parts = vv.filePath.split(/[/\\]/); 
-    fileName = parts[parts.length - 1];
-  }
-  const videoUrl = fileName
-    ? `http://localhost:5000/uploads/${encodeURIComponent(fileName)}`
-    : "";
+  // ✅ Use Cloudinary filePath directly
+  const videoUrl = vv.filePath;
 
   return (
-    <>
-      <div className="container_videoPage">
-        <div className="container2_videoPage">
-          <div className="video_display_screen_videoPage">
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              className={"video_ShowVideo_videoPage"}
-              controls
-            />
-            <div className="video_details_videoPage">
-              <div className="video_btns_title_VideoPage_cont">
-                <p className="video_title_VideoPage"> {vv?.videoTitle}</p>
-                <div className="views_date_btns_VideoPage">
-                  <div className="views_videoPage">
-                    {vv?.Views} views <div className="dot"></div>{" "}
-                    {moment(vv?.createdAt).fromNow()}
-                  </div>
-                  <LikeWatchLaterSaveBtns vv={vv} vid={vid} />
+    <div className="container_videoPage">
+      <div className="container2_videoPage">
+        <div className="video_display_screen_videoPage">
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="video_ShowVideo_videoPage"
+            controls
+          />
+          <div className="video_details_videoPage">
+            <div className="video_btns_title_VideoPage_cont">
+              <p className="video_title_VideoPage"> {vv?.videoTitle}</p>
+              <div className="views_date_btns_VideoPage">
+                <div className="views_videoPage">
+                  {vv?.Views} views <div className="dot"></div>{" "}
+                  {moment(vv?.createdAt).fromNow()}
                 </div>
-              </div>
-              <Link
-                to={`/chanel/${vv?.videoChanel}`}
-                className="chanel_details_videoPage"
-              >
-                <b className="chanel_logo_videoPage">
-                  <p>{vv?.Uploder?.charAt(0).toUpperCase()}</p>
-                </b>
-                <p className="chanel_name_videoPage">{vv?.Uploder}</p>
-              </Link>
-              <div
-                className="comments_VideoPage"
-                tabIndex={0}
-                ref={commentSectionRef}
-              >
-                <h2>
-                  <u>Comments</u>
-                </h2>
-                <Comments videoId={vv?._id} />
+                <LikeWatchLaterSaveBtns vv={vv} vid={vid} />
               </div>
             </div>
+            <Link
+              to={`/chanel/${vv?.videoChanel}`}
+              className="chanel_details_videoPage"
+            >
+              <b className="chanel_logo_videoPage">
+                <p>{vv?.Uploder?.charAt(0).toUpperCase()}</p>
+              </b>
+              <p className="chanel_name_videoPage">{vv?.Uploder}</p>
+            </Link>
+            <div
+              className="comments_VideoPage"
+              tabIndex={0}
+              ref={commentSectionRef}
+            >
+              <h2>
+                <u>Comments</u>
+              </h2>
+              <Comments videoId={vv?._id} />
+            </div>
           </div>
-          <div className="moreVideoBar">More video</div>
         </div>
+        <div className="moreVideoBar">More video</div>
       </div>
-    </>
+    </div>
   );
 }
 

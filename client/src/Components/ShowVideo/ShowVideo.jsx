@@ -8,36 +8,15 @@ function ShowVideo({ vid }) {
     return <p>No video selected</p>;
   }
 
-  const getFileName = (v) => {
-    if (!v) return "";
-    if (typeof v === "string") {
-      const parts = v.split(/[/\\]/);
-      return parts[parts.length - 1] || "";
-    }
-    if (v.filename) {
-      const parts = String(v.filename).split(/[/\\]/);
-      return parts[parts.length - 1] || "";
-    }
-    if (v.filePath) {
-      const parts = String(v.filePath).split(/[/\\]/);
-      return parts[parts.length - 1] || "";
-    }
-    return "";
-  };
-
-  const fileName = getFileName(vid);
-  if (!fileName) {
-    console.error("ShowVideo: could not derive filename from vid:", vid);
-    return <p>Invalid video data</p>;
-  }
-
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
-  const videoURL = `${API_BASE}/uploads/${encodeURIComponent(fileName)}`;
-
   return (
     <>
       <Link to={`/videopage/${vid?._id}`}>
-        <video src={videoURL} className="video_ShowVideo" controls preload="metadata" />
+        <video
+          src={vid.filePath} // ✅ Directly use Cloudinary URL
+          className="video_ShowVideo"
+          controls
+          preload="metadata"
+        />
       </Link>
 
       <div className="video_description">
