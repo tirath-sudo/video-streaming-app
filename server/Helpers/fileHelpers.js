@@ -1,9 +1,11 @@
 "use strict";
 import multer from "multer";
 import fs from "fs";
+import path from "path";
 
-// Ensure "uploads" directory exists
-const uploadDir = "uploads";
+const uploadDir = path.join(process.cwd(), "uploads");
+
+// Ensure uploads folder exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -24,10 +26,10 @@ const fileFilter = (req, file, cb) => {
   if (file.mimetype === "video/mp4") {
     cb(null, true);
   } else {
-    cb(new Error("Only .mp4 videos allowed"), false);
+    cb(new Error("Only .mp4 video files are allowed!"), false);
   }
 };
 
-const upload = multer({ storage: storage, fileFilter: fileFilter });
+const upload = multer({ storage, fileFilter });
 
 export default upload;
