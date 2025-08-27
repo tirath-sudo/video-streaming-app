@@ -9,7 +9,7 @@ import commentsRoutes from './routes/comments.js';
 import path from 'path';
 import createSocketServer from './socket.js';
 import videoCallRoutes from './routes/videoCall.js';
-import path from "path";
+
 
 
 dotenv.config();
