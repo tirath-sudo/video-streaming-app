@@ -40,8 +40,20 @@ export const login = async (req, res) => {
     // 5) Respond
     console.log('[LOGIN] Success for:', email, 'userId:', existingUser._id.toString());
     res.status(200).json({ result: existingUser, token });
+
   } catch (err) {
-    console.error('[LOGIN] Error:', err);
-    res.status(500).json({ message: 'Something went wrong' });
+    // 🔥 Detailed error output
+    console.error('[LOGIN ERROR]', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+      code: err.code,
+      keyValue: err.keyValue, // shows duplicate key errors
+    });
+
+    res.status(500).json({
+      message: 'Something went wrong',
+      error: err.message,   // return error message to client for now
+    });
   }
 };
