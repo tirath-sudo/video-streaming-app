@@ -71,7 +71,9 @@ export const deleteHistory = (userId) =>
   API.delete(`/video/deleteHistory/${userId}`);
 
 export const addToLikedVideo = (userId) => API.post("/video/addToLikedVideo", userId);
-export const getAlllikedVideo = (userId) => API.gett("/video/getAlllikedVideo", userId);
+export const getAlllikedVideo = (userId) => API.get("/video/getAlllikedVideo", userId);
+export const deletelikedVideo = (userId) => API.delete("/video/deletelikedVideo", userId);
+
 
 
 // ✅ Comments
