@@ -48,6 +48,9 @@ export const fetchAllChanel = () => API.get("/user/getAllChanels");
 
 export const getPoints = (userId) => API.get(`/user/getPoints/${userId}`);
 
+export const updatePoints = (userId) => API.get(`/user/updatePoints/${userId}`);
+
+
 // ✅ Video APIs
 export const fetchAllVideo = () => API.get("/video/get");
 
