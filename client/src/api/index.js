@@ -58,7 +58,8 @@ export const uploadVideo = (formData) =>
   API.post("/video/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-
+export const getVideos = () => API.get("/video/getVideos");
+  
 export const likeVideo = (videoId) => API.patch(`/video/like/${videoId}`);
 export const watchLater = (videoId) => API.patch(`/video/watchlater/${videoId}`);
 export const postView = (videoId, viewerId) =>
