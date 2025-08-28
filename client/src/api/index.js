@@ -1,42 +1,63 @@
+
 import axios from "axios";
+
+const baseURL = process.env.REACT_APP_API_BASE_URL;
+
+if (!baseURL) {
+  // Fail fast in production – prevents silent localhost calls
+  if (process.env.NODE_ENV === "production") {
+    // eslint-disable-next-line no-console
+    console.error(
+      "[API] REACT_APP_API_BASE_URL is not set. " +
+      "Configure it in your Vercel client project env to your server URL."
+    );
+  }
+}
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000',
+  baseURL: baseURL || "http://localhost:5000",
+  withCredentials: false, // using JWT in localStorage, not cookies
 });
 
 API.interceptors.request.use((req) => {
-  if (localStorage.getItem("Profile")) {
-    req.headers.authorization = `Bearer ${JSON.parse(localStorage.getItem("Profile")).token}`;
+  const raw = localStorage.getItem("Profile");
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.token) {
+        req.headers.authorization = `Bearer ${parsed.token}`;
+      }
+    } catch {
+      // eslint-disable-next-line no-console
+      console.warn("[API] Corrupt Profile in localStorage, ignoring.");
+    }
   }
   return req;
 });
 
 // User-related APIs
-export const login = (payload) => API.post('/user/login', payload);
+export const login = (payload) => API.post("/user/login", payload);
 export const updateChanelData = (id, updateData) => API.patch(`/user/update/${id}`, updateData);
 export const fetchAllChanel = () => API.get("/user/getAllChanels");
-export const getPoints = (id) => API.get(`/user/getpoints/${id}`);
-export const updatePoints = (id, updateData) => API.patch(`/user/updatePoints/${id}`);
 
-// Video-related APIs
-export const uploadVideo = (fileData, fileOptions) => API.post("/video/uploadVideo", fileData, fileOptions);
-export const getVideos = () => API.get("/video/getvideos");
-export const likeVideo = (id, Like) => API.patch(`/video/like/${id}`, { Like });
-export const viewsVideo = (id) => API.patch(`/video/view/${id}`);
-export const addToLikedVideo = (likedVideoData) => API.post("/video/likeVideo", likedVideoData);
-export const getAlllikedVideo = () => API.get("/video/getAlllikeVideo");
-export const deletelikedVideo = (videoId, Viewer) => API.delete(`/video/deleteLikedVideo/${videoId}/${Viewer}`);
-export const addTowatchLater = (watchLaterData) => API.post("/video/watchLater", watchLaterData);
-export const getAllwatchLater = () => API.get("/video/getAllwatchLater");
-export const deleteWatchLater = (videoId, Viewer) => API.delete(`/video/deleteWatchlater/${videoId}/${Viewer}`);
-export const addToHistory = (HistoryData) => API.post("/video/History", HistoryData);
-export const getAllHistory = () => API.get("/video/getAllHistory");
+// Video APIs ...
+export const fetchAllVideo = () => API.get("/video/get");
+export const uploadVideo = (formData) => API.post("/video/upload", formData, {
+  headers: { "Content-Type": "multipart/form-data" },
+});
+export const likeVideo = (videoId) => API.patch(`/video/like/${videoId}`);
+export const watchLater = (videoId) => API.patch(`/video/watchlater/${videoId}`);
+export const postView = (videoId, viewerId) => API.post(`/video/view/${videoId}`, { viewerId });
+export const getAllHistory = (userId) => API.get(`/video/getHistory/${userId}`);
 export const deleteHistory = (userId) => API.delete(`/video/deleteHistory/${userId}`);
-export const postComment = (CommentData) => API.post('/comment/post', CommentData);
+
+// Comments
+export const postComment = (CommentData) => API.post("/comment/post", CommentData);
 export const deleteComment = (id) => API.delete(`/comment/delete/${id}`);
 export const editComment = (id, commentBody) => API.patch(`/comment/edit/${id}`, { commentBody });
-export const getAllComment = () => API.get('/comment/get');
+export const getAllComment = () => API.get("/comment/get");
 
-// Video Call-related APIs
+// Video Call
 export const initiateCall = (data) => API.post("/videoCall/call", data);
 export const answerCall = (data) => API.post("/videoCall/answer", data);
 export const endCall = (data) => API.post("/videoCall/end", data);

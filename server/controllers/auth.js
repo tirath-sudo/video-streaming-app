@@ -41,7 +41,6 @@ export const login = async (req, res) => {
     console.log('[LOGIN] Success for:', email, 'userId:', existingUser._id.toString());
     res.status(200).json({ result: existingUser, token });
   } catch (err) {
-    // Catch unexpected failures (e.g., DB errors)
     console.error('[LOGIN] Error:', err);
     res.status(500).json({ message: 'Something went wrong' });
   }

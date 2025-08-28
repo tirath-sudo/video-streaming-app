@@ -1,22 +1,21 @@
+
 import jwt from 'jsonwebtoken';
 
 const auth = (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
-    console.log(`Token: ${token}`);
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.split(' ')[1] : null;
 
     if (!token) {
-      return res.status(400).json("No token provided");
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    const decodeData = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(`Decoded Data: ${JSON.stringify(decodeData)}`);
-
-    req.userId = decodeData?.id;
-    next();
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded?.id;
+    return next();
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    res.status(400).json("Invalid Credentials");
+    console.error('[AUTH MIDDLEWARE] Error:', error?.message);
+    return res.status(401).json({ message: 'Invalid credentials' });
   }
 };
 
