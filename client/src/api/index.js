@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const baseURL = process.env.REACT_APP_API_BASE_URL;
@@ -35,33 +34,53 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// User-related APIs
-export const login = (payload) => API.post("/user/login", payload);
-export const updateChanelData = (id, updateData) => API.patch(`/user/update/${id}`, updateData);
+// ✅ User-related APIs
+export const login = (payload) =>
+  API.post("/user/login", JSON.stringify(payload), {
+    headers: { "Content-Type": "application/json" },
+  });
+
+export const updateChanelData = (id, updateData) =>
+  API.patch(`/user/update/${id}`, updateData);
+
 export const fetchAllChanel = () => API.get("/user/getAllChanels");
 
-// Video APIs ...
+// ✅ Video APIs
 export const fetchAllVideo = () => API.get("/video/get");
-export const uploadVideo = (formData) => API.post("/video/upload", formData, {
-  headers: { "Content-Type": "multipart/form-data" },
-});
+
+export const uploadVideo = (formData) =>
+  API.post("/video/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const likeVideo = (videoId) => API.patch(`/video/like/${videoId}`);
 export const watchLater = (videoId) => API.patch(`/video/watchlater/${videoId}`);
-export const postView = (videoId, viewerId) => API.post(`/video/view/${videoId}`, { viewerId });
-export const getAllHistory = (userId) => API.get(`/video/getHistory/${userId}`);
-export const deleteHistory = (userId) => API.delete(`/video/deleteHistory/${userId}`);
+export const postView = (videoId, viewerId) =>
+  API.post(`/video/view/${videoId}`, { viewerId });
 
-// Comments
-export const postComment = (CommentData) => API.post("/comment/post", CommentData);
-export const deleteComment = (id) => API.delete(`/comment/delete/${id}`);
-export const editComment = (id, commentBody) => API.patch(`/comment/edit/${id}`, { commentBody });
+export const getAllHistory = (userId) =>
+  API.get(`/video/getHistory/${userId}`);
+export const deleteHistory = (userId) =>
+  API.delete(`/video/deleteHistory/${userId}`);
+
+// ✅ Comments
+export const postComment = (CommentData) =>
+  API.post("/comment/post", CommentData);
+export const deleteComment = (id) =>
+  API.delete(`/comment/delete/${id}`);
+export const editComment = (id, commentBody) =>
+  API.patch(`/comment/edit/${id}`, { commentBody });
 export const getAllComment = () => API.get("/comment/get");
 
-// Video Call
+// ✅ Video Call
 export const initiateCall = (data) => API.post("/videoCall/call", data);
 export const answerCall = (data) => API.post("/videoCall/answer", data);
 export const endCall = (data) => API.post("/videoCall/end", data);
-export const startScreenShare = (data) => API.post("/videoCall/start-screen-share", data);
-export const stopScreenShare = (data) => API.post("/videoCall/stop-screen-share", data);
-export const startRecording = (data) => API.post("/videoCall/start-recording", data);
-export const stopRecording = (data) => API.post("/videoCall/stop-recording", data);
+export const startScreenShare = (data) =>
+  API.post("/videoCall/start-screen-share", data);
+export const stopScreenShare = (data) =>
+  API.post("/videoCall/stop-screen-share", data);
+export const startRecording = (data) =>
+  API.post("/videoCall/start-recording", data);
+export const stopRecording = (data) =>
+  API.post("/videoCall/stop-recording", data);
