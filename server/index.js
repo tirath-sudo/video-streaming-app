@@ -51,6 +51,7 @@ const corsOptions = {
 console.log("Mounting /cors");
 app.use(cors(corsOptions));
 
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // optional: request logger you already have
 console.log("Mounting /requestlogger");
