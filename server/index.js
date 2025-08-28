@@ -1,96 +1,122 @@
-
+// server/index.js
 import express from 'express';
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import cors from 'cors';
-import bodyParser from 'body-parser';
+import path from 'path';
 import userRoutes from './routes/user.js';
 import videoRoutes from './routes/video.js';
 import commentsRoutes from './routes/comments.js';
-import path from 'path';
-import createSocketServer from './socket.js';
 import videoCallRoutes from './routes/videoCall.js';
 import requestLogger from './middleware/requestLogger.js';
 
-dotenv.config();
+dotenv.config(); // OK in dev; in Vercel prefer project env vars
 
 const app = express();
-
-// Behind Vercel/Proxies (some features rely on this)
 app.set('trust proxy', 1);
 
-console.log("Mounting /express.json");
-app.use(express.json({ limit: '1mb', extended: true }));
-console.log("Mounting /express.urlencoded");
-app.use(express.urlencoded({ limit: '1mb', extended: true }));
+// Basic parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// static uploads
-console.log("Mounting /uploads");
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// static uploads (if you use this)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// ---- CORS ----
+// CORS: allow comma-separated list in CORS_CLIENT_ORIGIN env var
+const clientOrigins = (process.env.CORS_CLIENT_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
 const allowlist = [
-  process.env.CORS_CLIENT_ORIGIN, // e.g. https://your-client.vercel.app
+  ...clientOrigins,
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-].filter(Boolean);
+];
 
 const corsOptions = {
   origin(origin, cb) {
-    // Allow same-origin or server-to-server (no Origin header)
     if (!origin) return cb(null, true);
     if (allowlist.includes(origin)) return cb(null, true);
-    return cb(new Error(`CORS: Origin ${origin} not allowed`));
+    return cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
 };
 
-console.log("Mounting /cors");
 app.use(cors(corsOptions));
-
-app.use(express.static(path.join(process.cwd(), 'public')));
-
-// optional: request logger you already have
-console.log("Mounting /requestlogger");
 app.use(requestLogger);
 
-// Socket.io server wrapper
-const { server, io } = createSocketServer(app);
+// Quick health endpoint to inspect env presence and DB connectivity state
+app.get('/health', (req, res) => {
+  res.json({
+    ok: true,
+    env: {
+      jwt_present: !!(process.env.JWT_SECRET || process.env.SECRET),
+      mongo_url_present: !!(process.env.MONGO_URI || process.env.CONNECTION_URL || process.env.MONGODB_URI)
+    },
+  });
+});
 
-// Routes
-console.log("Mounting /user routes");
+// Mount routers
 app.use('/user', userRoutes);
-console.log("Mounting /video routes");
 app.use('/video', videoRoutes);
-console.log("Mounting /comment routes");
 app.use('/comment', commentsRoutes);
-console.log("Mounting /videoCall routes");
 app.use('/videoCall', videoCallRoutes);
 
-// Global error guard
-console.log("Mounting /global error guard");
+// global error handler
 app.use((err, req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.error('[UNCAUGHT ERROR]', err);
-  res.status(500).json({ message: 'Internal error', errorId: Date.now() });
+  console.error('[UNCAUGHT ERROR]', err && err.stack ? err.stack : err);
+  res.status(500).json({ message: 'Internal server error', detail: err?.message });
 });
 
-// Startup
+// Startup: ensure DB is connected before listening.
+// Look for MONGO_URI or CONNECTION_URL or MONGODB_URI
+const DB_URL = process.env.MONGO_URI || process.env.CONNECTION_URL || process.env.MONGODB_URI;
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+async function start() {
+  // 1) required env checks
+  if (!DB_URL) {
+    console.error('[STARTUP] Missing MongoDB connection string. Set MONGO_URI or CONNECTION_URL or MONGODB_URI in environment.');
+    process.exit(1);
+  }
+
+  try {
+    console.log('[STARTUP] Connecting to MongoDB...');
+    // Note: do not pass legacy options that mongoose warns about
+    await mongoose.connect(DB_URL);
+    console.log('[STARTUP] MongoDB connected.');
+  } catch (err) {
+    console.error('[STARTUP] MongoDB connection failed:', err && err.message ? err.message : err);
+    process.exit(1);
+  }
+
+  if (!(process.env.JWT_SECRET || process.env.SECRET)) {
+    console.warn('[STARTUP] WARNING: JWT_SECRET or SECRET not set — login/token generation will fail.');
+    // we do not exit, but it's logged loudly
+  } else {
+    console.log('[STARTUP] JWT secret found.');
+  }
+
+  const server = app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+
+  server.on('error', (err) => {
+    console.error('[SERVER] Listen error', err);
+    process.exit(1);
+  });
+}
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED REJECTION]', reason);
 });
 
-const DB_URL = process.env.CONNECTION_URL;
-mongoose.connect(DB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000,
-}).then(() => {
-  console.log('MongoDB database connected');
-}).catch((error) => {
-  console.log(error);
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT EXCEPTION]', err);
+  process.exit(1);
 });
+
+start();
