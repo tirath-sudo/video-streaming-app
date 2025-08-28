@@ -4,6 +4,8 @@ import users from '../models/auth.js';
 
 export const login = async (req, res) => {
   try {
+    console.log('[LOGIN] Incoming body:', req.body);
+
     // 1) Validate + sanitize input
     const rawEmail = req.body?.email;
     if (typeof rawEmail !== 'string') {
@@ -16,44 +18,56 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
+    console.log('[LOGIN] Email validated:', email);
+
     // 2) Ensure JWT secret present
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       console.error('[LOGIN] Missing JWT_SECRET');
-      return res.status(500).json({ message: 'Server misconfiguration' });
+      return res.status(500).json({ message: 'Server misconfiguration: JWT_SECRET missing' });
     }
+    console.log('[LOGIN] JWT_SECRET exists');
 
     // 3) Find or create user
-    let existingUser = await users.findOne({ email });
+    let existingUser;
+    try {
+      existingUser = await users.findOne({ email });
+      console.log('[LOGIN] User lookup result:', existingUser);
+    } catch (dbErr) {
+      console.error('[LOGIN] DB lookup error:', dbErr);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
     if (!existingUser) {
       console.log('[LOGIN] New user creation for:', email);
-      existingUser = await users.create({ email });
+      try {
+        existingUser = await users.create({ email });
+        console.log('[LOGIN] User created:', existingUser._id.toString());
+      } catch (createErr) {
+        console.error('[LOGIN] User creation failed:', createErr);
+        return res.status(500).json({ message: 'User creation failed' });
+      }
     }
 
     // 4) Sign token
-    const token = jwt.sign(
-      { email: existingUser.email, id: existingUser._id },
-      secret,
-      { expiresIn: '1h' }
-    );
+    let token;
+    try {
+      token = jwt.sign(
+        { email: existingUser.email, id: existingUser._id },
+        secret,
+        { expiresIn: '1h' }
+      );
+      console.log('[LOGIN] Token signed successfully');
+    } catch (jwtErr) {
+      console.error('[LOGIN] Token signing error:', jwtErr);
+      return res.status(500).json({ message: 'Token generation failed' });
+    }
 
     // 5) Respond
     console.log('[LOGIN] Success for:', email, 'userId:', existingUser._id.toString());
     res.status(200).json({ result: existingUser, token });
-
   } catch (err) {
-    // 🔥 Detailed error output
-    console.error('[LOGIN ERROR]', {
-      message: err.message,
-      name: err.name,
-      stack: err.stack,
-      code: err.code,
-      keyValue: err.keyValue, // shows duplicate key errors
-    });
-
-    res.status(500).json({
-      message: 'Something went wrong',
-      error: err.message,   // return error message to client for now
-    });
+    console.error('[LOGIN] Uncaught Error:', err);
+    res.status(500).json({ message: 'Something went wrong' });
   }
 };
