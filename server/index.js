@@ -50,7 +50,7 @@ const corsOptions = {
 
 console.log("Mounting /cors");
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // preflight
+
 
 // optional: request logger you already have
 console.log("Mounting /requestlogger");
