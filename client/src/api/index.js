@@ -78,7 +78,7 @@ export const deletelikedVideo = (userId) => API.delete("/video/deletelikedVideo"
 
 export const addTowatchLater = (userId) => API.post("/video/addTowatchLater", userId);
 export const getAllwatchLater = (userId) => API.get("/video/getAllwatchLater", userId);
-
+export const deleteWatchLater = (userId) => API.delete("/video/deleteWatchLater", userId);
 
 
 // ✅ Comments
