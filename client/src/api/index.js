@@ -11,7 +11,7 @@ API.interceptors.request.use((req) => {
 });
 
 // User-related APIs
-export const login = (authData) => API.post("/user/login", authData);
+export const login = (payload) => API.post('/user/login', payload);
 export const updateChanelData = (id, updateData) => API.patch(`/user/update/${id}`, updateData);
 export const fetchAllChanel = () => API.get("/user/getAllChanels");
 export const getPoints = (id) => API.get(`/user/getpoints/${id}`);
