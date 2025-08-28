@@ -19,10 +19,13 @@ const app = express();
 // Behind Vercel/Proxies (some features rely on this)
 app.set('trust proxy', 1);
 
+console.log("Mounting /express.json");
 app.use(express.json({ limit: '1mb', extended: true }));
+console.log("Mounting /express.urlencoded");
 app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
 // static uploads
+console.log("Mounting /uploads");
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // ---- CORS ----
@@ -45,22 +48,29 @@ const corsOptions = {
   maxAge: 86400,
 };
 
+console.log("Mounting /cors");
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // preflight
 
 // optional: request logger you already have
+console.log("Mounting /requestlogger");
 app.use(requestLogger);
 
 // Socket.io server wrapper
 const { server, io } = createSocketServer(app);
 
 // Routes
+console.log("Mounting /user routes");
 app.use('/user', userRoutes);
+console.log("Mounting /video routes");
 app.use('/video', videoRoutes);
+console.log("Mounting /comment routes");
 app.use('/comment', commentsRoutes);
+console.log("Mounting /videoCall routes");
 app.use('/videoCall', videoCallRoutes);
 
 // Global error guard
+console.log("Mounting /global error guard");
 app.use((err, req, res, next) => {
   // eslint-disable-next-line no-console
   console.error('[UNCAUGHT ERROR]', err);
