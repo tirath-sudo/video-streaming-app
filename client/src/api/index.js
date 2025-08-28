@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 const baseURL = process.env.REACT_APP_API_BASE_URL;
 
 if (!baseURL) {
@@ -58,6 +59,7 @@ export const watchLater = (videoId) => API.patch(`/video/watchlater/${videoId}`)
 export const postView = (videoId, viewerId) =>
   API.post(`/video/view/${videoId}`, { viewerId });
 
+export const addToHistory = (HistoryData) => API.post("/video/history", HistoryData);
 export const getAllHistory = (userId) =>
   API.get(`/video/getHistory/${userId}`);
 export const deleteHistory = (userId) =>
@@ -84,3 +86,5 @@ export const startRecording = (data) =>
   API.post("/videoCall/start-recording", data);
 export const stopRecording = (data) =>
   API.post("/videoCall/stop-recording", data);
+
+

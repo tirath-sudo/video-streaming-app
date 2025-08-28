@@ -12,15 +12,14 @@ export const addToHistory=(HistoryData)=>async(dispatch)=>{
       }
 }
 
-export const getAllHistory=()=> async (dispatch)=>{
-    try {
-        const {data}= await api.getAllHistory();
-        console.log(data)
-      dispatch({type:'FETCH_ALL_HISTORY_VIDEOS',payload:data})
-    } catch (error) {
-        console.log(error)
-    }
+export const getAllHistory = (userId) => async (dispatch) => {
+  try {
+    const { data } = await api.getAllHistory(userId);
+    dispatch({ type: 'FETCH_ALL_HISTORY_VIDEOS', payload: data });
+  } catch (error) {
+    console.log(error);
   }
+};
 
   export const clearHistory =(HistoryData)=> async(dispatch)=>{
     try {
