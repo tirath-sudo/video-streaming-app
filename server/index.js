@@ -61,7 +61,7 @@ server.listen(PORT, () => {
 });
 
 const DB_URL = process.env.CONNECTION_URL;
-mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, serverSelectionTimeoutMS: 10000 })
   .then(() => {
     console.log("MongoDB database connected");
   })
